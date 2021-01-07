@@ -146,3 +146,6 @@ Envía a seguinte ligazón o administrador do servidor de Discord no que queiras
   `https://discordapp.com/oauth2/authorize?client_id=ID_CLIENTE_ROBOT&scope=bot`
   
 Cambia `ID_CLIENTE_ROBOT` na URL pola ID de cliente da túa aplicación de Discord, que podes atopala nos detallees da aplicación.
+## Credits
+
+O Timbot orixinal foi desenvolto por @roydejong e isto é un fork do mesmo. Se atopas algún erro ou es un dos autores e pensas que hai algún erro, contacta conmigo!
