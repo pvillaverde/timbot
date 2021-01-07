@@ -2,6 +2,7 @@ const config = require('./config.json');
 const TwitchApi = require('./twitch-api');
 const MiniDb = require('./minidb');
 const moment = require('moment');
+const GoogleSheetsApi = require('./google-sheets');
 
 class TwitchMonitor {
 	static __init() {
@@ -19,39 +20,54 @@ class TwitchMonitor {
 
 	static start() {
 		// Load channel names from config
-		this.channelNames = [];
-		config.twitch_channels.split(',').forEach((channelName) => {
-			if (channelName) {
-				this.channelNames.push(channelName.toLowerCase());
+		this.getChannelNames().then((channelNames) => {
+			this.channelNames = channelNames;
+	
+			// Configure polling interval
+			let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
+			if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
+				// Enforce minimum poll interval to help avoid rate limits
+				checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
 			}
+			setInterval(() => {
+				this.refresh('Periodic refresh');
+			}, checkIntervalMs + 1000);
+	
+			// Immediate refresh after startup
+			setTimeout(() => {
+				this.refresh('Initial refresh after start-up');
+			}, 1000);
+	
+			// Ready!
+			console.log(
+				'[TwitchMonitor]',
+				`Configured stream status polling for channels:`,
+				this.channelNames.join(', '),
+				`(${checkIntervalMs}ms interval)`
+			);
 		});
-		if (!this.channelNames.length) {
-			console.warn('[TwitchMonitor]', 'No channels configured');
-			return;
+	}
+
+	static getChannelNames() {
+		const channels = config.twitch_channels ? config.twitch_channels.split(',') : null;
+		
+		if(channels && channels.length) {
+			const channelNames = channels.map(channelName => channelName.toLowerCase());
+			return Promise.resolve(channelNames)
 		}
-
-		// Configure polling interval
-		let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
-		if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
-			// Enforce minimum poll interval to help avoid rate limits
-			checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
-		}
-		setInterval(() => {
-			this.refresh('Periodic refresh');
-		}, checkIntervalMs + 1000);
-
-		// Immediate refresh after startup
-		setTimeout(() => {
-			this.refresh('Initial refresh after start-up');
-		}, 1000);
-
-		// Ready!
-		console.log(
-			'[TwitchMonitor]',
-			`Configured stream status polling for channels:`,
-			this.channelNames.join(', '),
-			`(${checkIntervalMs}ms interval)`
-		);
+		return GoogleSheetsApi.fetchData(config.google_spreadsheet).then((channels) => {
+			this.channelNames = [];
+			const headers = config.google_spreadsheet.headers.split(',');
+			channels.forEach((channel) => {
+				if (channel && channel[headers[0]]) {
+					this.channelNames.push(channel[headers[0]].toLowerCase());
+				}
+			});
+			if (!this.channelNames.length) {
+				throw console.warn('[TwitchMonitor]', 'No channels configured');
+			}
+			return this.channelNames;
+		});
 	}
 
 	static refresh(reason) {
@@ -61,19 +77,23 @@ class TwitchMonitor {
 		// Refresh all users periodically
 		if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
 			this._pendingUserRefresh = true;
-			TwitchApi.fetchUsers(this.channelNames)
-				.then((users) => {
-					this.handleUserList(users);
-				})
-				.catch((err) => {
-					console.warn('[TwitchMonitor]', 'Error in users refresh:', err);
-				})
-				.then(() => {
-					if (this._pendingUserRefresh) {
-						this._pendingUserRefresh = false;
-						this.refresh('Got Twitch users, need to get streams');
-					}
-				});
+			
+			this.getChannelNames().then((channelNames) => {
+				this.channelNames = channelNames;
+				TwitchApi.fetchUsers(this.channelNames)
+					.then((users) => {
+						this.handleUserList(users);
+					})
+					.catch((err) => {
+						console.warn('[TwitchMonitor]', 'Error in users refresh:', err);
+					})
+					.then(() => {
+						if (this._pendingUserRefresh) {
+							this._pendingUserRefresh = false;
+							this.refresh('Got Twitch users, need to get streams');
+						}
+					});
+			});
 		}
 
 		// Refresh all games if needed

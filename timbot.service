@@ -1,0 +1,14 @@
+[Unit]
+Description=Timbot
+
+[Service]
+ExecStart=/opt/timbot/index.js
+Restart=always
+User=timbot
+Group=timbot
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/opt/timbot
+
+[Install]
+WantedBy=multi-user.target

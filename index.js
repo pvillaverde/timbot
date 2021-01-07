@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const config = require('./config.json');
 
 const axios = require('axios');
