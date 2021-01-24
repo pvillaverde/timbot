@@ -22,7 +22,7 @@ class TwitchMonitor {
 		// Load channel names from config
 		this.getChannelNames().then((channelNames) => {
 			this.channelNames = channelNames;
-	
+
 			// Configure polling interval
 			let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
 			if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
@@ -32,12 +32,12 @@ class TwitchMonitor {
 			setInterval(() => {
 				this.refresh('Periodic refresh');
 			}, checkIntervalMs + 1000);
-	
+
 			// Immediate refresh after startup
 			setTimeout(() => {
 				this.refresh('Initial refresh after start-up');
 			}, 1000);
-	
+
 			// Ready!
 			console.log(
 				'[TwitchMonitor]',
@@ -50,10 +50,10 @@ class TwitchMonitor {
 
 	static getChannelNames() {
 		const channels = config.twitch_channels ? config.twitch_channels.split(',') : null;
-		
-		if(channels && channels.length) {
-			const channelNames = channels.map(channelName => channelName.toLowerCase());
-			return Promise.resolve(channelNames)
+
+		if (channels && channels.length) {
+			const channelNames = channels.map((channelName) => channelName.toLowerCase());
+			return Promise.resolve(channelNames);
 		}
 		return GoogleSheetsApi.fetchData(config.google_spreadsheet).then((channels) => {
 			this.channelNames = [];
@@ -77,7 +77,7 @@ class TwitchMonitor {
 		// Refresh all users periodically
 		if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
 			this._pendingUserRefresh = true;
-			
+
 			this.getChannelNames().then((channelNames) => {
 				this.channelNames = channelNames;
 				TwitchApi.fetchUsers(this.channelNames)
@@ -214,10 +214,18 @@ class TwitchMonitor {
 
 			if (nextOnlineList.indexOf(_chanName) === -1) {
 				// Stream was in the list before, but no longer
-				console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
-				this.streamData[_chanName].type = 'detected_offline';
-				this.handleChannelOffline(this.streamData[_chanName]);
-				anyChanges = true;
+				this.streamData[_chanName].timeout = this.streamData[_chanName].timeout ? this.streamData[_chanName].timeout + 1 : 1;
+				console.log('[TwitchMonitor]', 'Stream channel timeout, probabbly offline:', _chanName, this.streamData[_chanName].timeout);
+				if (this.streamData[_chanName].timeout >= 5) {
+					console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
+					this.streamData[_chanName].type = 'detected_offline';
+					this.handleChannelOffline(this.streamData[_chanName]);
+					anyChanges = true;
+				} else {
+					nextOnlineList.push(_chanName);
+				}
+			} else {
+				this.streamData[_chanName].timeout = 0;
 			}
 		}
 

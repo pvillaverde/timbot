@@ -65,24 +65,20 @@ class LiveEmbed {
 			let thumbnailBuster = (Date.now() / 1000).toFixed(0);
 			imageUrl += `?t=${thumbnailBuster}`;
 			msgEmbed.setImage(imageUrl);
-
-			// Add uptime
-			let now = moment();
-			let startedAt = moment(streamData.started_at);
-
-			msgEmbed.addField(
-				'Tempo en emisión',
-				humanizeDuration(now - startedAt, {
-					delimiter: ', ',
-					largest: 2,
-					round: true,
-					units: ['y', 'mo', 'w', 'd', 'h', 'm'],
-					language: 'gl',
-					fallbacks: ['gl', 'es'],
-				}),
-				true
-			);
 		}
+		// Add uptime
+		let now = moment();
+		let startedAt = moment(streamData.started_at);
+		let streamDuration = humanizeDuration(now - startedAt, {
+			delimiter: ', ',
+			largest: 2,
+			round: true,
+			units: ['y', 'mo', 'w', 'd', 'h', 'm'],
+			language: 'gl',
+			fallbacks: ['gl', 'es'],
+		});
+
+		msgEmbed.addField('Tempo en emisión', streamDuration, true);
 
 		return msgEmbed;
 	}
