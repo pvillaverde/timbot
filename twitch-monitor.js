@@ -55,19 +55,23 @@ class TwitchMonitor {
 			const channelNames = channels.map((channelName) => channelName.toLowerCase());
 			return Promise.resolve(channelNames);
 		}
-		return GoogleSheetsApi.fetchData(config.google_spreadsheet).then((channels) => {
-			this.channelNames = [];
-			const headers = config.google_spreadsheet.headers.split(',');
-			channels.forEach((channel) => {
-				if (channel && channel[headers[0]]) {
-					this.channelNames.push(channel[headers[0]].toLowerCase());
+		return GoogleSheetsApi.fetchData(config.google_spreadsheet)
+			.then((channels) => {
+				this.channelNames = [];
+				const headers = config.google_spreadsheet.headers.split(',');
+				channels.forEach((channel) => {
+					if (channel && channel[headers[0]]) {
+						this.channelNames.push(
+							channel[headers[0]].toLowerCase().replace('\r\n', '').replace('\r', '').replace('\n', '')
+						);
+					}
+				});
+				if (!this.channelNames.length) {
+					throw console.warn('[TwitchMonitor]', 'No channels configured');
 				}
-			});
-			if (!this.channelNames.length) {
-				throw console.warn('[TwitchMonitor]', 'No channels configured');
-			}
-			return this.channelNames;
-		});
+				return this.channelNames;
+			})
+			.catch((error) => this.channelNames);
 	}
 
 	static refresh(reason) {

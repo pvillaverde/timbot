@@ -85,7 +85,7 @@ class GoogleSheetsApi {
 			sheets.spreadsheets.values.get({ spreadsheetId: spreadSheet.id, range: spreadSheet.range }, (err, res) => {
 				if (err) {
 					this.handleApiError(err, 'The Api returned an error');
-					reject(err);
+					return reject(err);
 				}
 				const rows = res.data.values;
 				if (rows.length) {
