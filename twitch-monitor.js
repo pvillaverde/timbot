@@ -223,6 +223,7 @@ class TwitchMonitor {
 				if (this.streamData[_chanName].timeout >= 5) {
 					console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
 					this.streamData[_chanName].type = 'detected_offline';
+					this.streamData[_chanName].timeout = 0;
 					this.handleChannelOffline(this.streamData[_chanName]);
 					anyChanges = true;
 				} else {

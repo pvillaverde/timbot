@@ -5,15 +5,16 @@ const { google } = require('googleapis');
 const config = require('./config.json');
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH = 'token.json';
-
 /**
  * Google Sheets Api Helper.
  */
 class GoogleSheetsApi {
+	// The file token.json stores the user's access and refresh tokens, and is
+	// created automatically when the authorization flow completes for the first
+	// time.
+	static get tokenPath() {
+		return 'google-token.json';
+	}
 	static handleApiError(error, message) {
 		if (message) {
 			console.error('[GoogleSheetsAPI]', 'API request failed with error:', error, message);
@@ -31,7 +32,7 @@ class GoogleSheetsApi {
 			const { client_secret, client_id, redirect_uris } = config.google_credentials;
 			const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 			// Check if we have previously stored a token.
-			fs.readFile(TOKEN_PATH, (err, token) => {
+			fs.readFile(this.tokenPath, (err, token) => {
 				if (err) return this.getNewToken(oAuth2Client).then((oAuthClient) => resolve(oAuthClient));
 				oAuth2Client.setCredentials(JSON.parse(token));
 				resolve(oAuth2Client);
@@ -62,12 +63,12 @@ class GoogleSheetsApi {
 					}
 					oAuth2Client.setCredentials(token);
 					// Store the token to disk for later program executions
-					fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+					fs.writeFile(this.tokenPath, JSON.stringify(token), (err) => {
 						if (err) {
 							this.handleApiError(err, 'Error while trying to store access token');
 							return reject(err);
 						}
-						console.log('Token stored to', TOKEN_PATH);
+						console.log('Token stored to', this.tokenPath);
 					});
 					resolve(oAuth2Client);
 				});
