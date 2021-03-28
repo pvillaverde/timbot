@@ -299,7 +299,7 @@ client.on('message', (message) => {
 		}
 
 		// Food use integration
-		if (
+		/* if (
 			txtLower.indexOf('food use') >= 0 ||
 			txtLower.indexOf('food dip') >= 0 ||
 			txtLower.indexOf('fooddip') >= 0 ||
@@ -413,7 +413,7 @@ client.on('message', (message) => {
 			if (clapEmoji) {
 				message.react(clapEmoji);
 			}
-		}
+		} */
 	} catch (e) {
 		console.error('Message processing / dumb joke error:', e, `<<< ${e.toString()} >>>`);
 	}
