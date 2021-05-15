@@ -5,7 +5,7 @@ MAINTAINER Pablo Villaverde <https://github.com/pvillaverde>
 ## This forces Docker not to use cache when we change our dependencies
 ADD package*.json /tmp/
 RUN cd /tmp && npm install
-RUN mkdir -p /opt/timbot && cp -a /tmp/node_modules /opt/app
+RUN mkdir -p /opt/timbot && cp -a /tmp/node_modules /opt/timbot
 ## Now we copy our App source code, having the dependencies previously cached if possible.
 WORKDIR /opt/timbot
 ADD . /opt/timbot
