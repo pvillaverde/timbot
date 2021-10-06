@@ -527,7 +527,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 					discordChannel.messages
 						.fetch(existingMsgId)
 						.then((existingMsg) => {
-							existingMsg
+							return existingMsg
 								.edit(msgFormatted, {
 									embed: msgEmbed,
 								})
@@ -537,6 +537,13 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 										delete messageHistory[liveMsgDiscrim];
 										liveMessageDb.put('history', messageHistory);
 									}
+								})
+								.catch((err) => {
+									console.log(
+										'[Discord]',
+										`Could not edit msg to #${discordChannel.name} on ${discordChannel.guild.name}:`,
+										err.message
+									);
 								});
 						})
 						.catch((e) => {
