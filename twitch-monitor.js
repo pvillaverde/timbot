@@ -57,6 +57,7 @@ class TwitchMonitor {
 		}
 		return GoogleSheetsApi.fetchData(config.google_spreadsheet)
 			.then((channels) => {
+				this.channels = channels;
 				this.channelNames = [];
 				const headers = config.google_spreadsheet.headers.split(',');
 				channels.forEach((channel) => {
@@ -254,7 +255,7 @@ class TwitchMonitor {
 			let _callback = this.channelLiveCallbacks[i];
 
 			if (_callback) {
-				if (_callback(streamData, isOnline) === false) {
+				if (_callback(streamData, isOnline, this.channels) === false) {
 					return false;
 				}
 			}

@@ -14,6 +14,7 @@ const DiscordChannelSync = require('./discord-channel-sync');
 const ElizaHelper = require('./eliza');
 const LiveEmbed = require('./live-embed');
 const MiniDb = require('./minidb');
+const { TwitterApi } = require('twitter-api-v2');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
 console.log('Timbot is starting.');
@@ -495,7 +496,7 @@ class StreamActivity {
 let liveMessageDb = new MiniDb('live-messages');
 let messageHistory = liveMessageDb.get('history') || {};
 
-TwitchMonitor.onChannelLiveUpdate((streamData) => {
+TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 	const isLive = streamData.type === 'live';
 
 	// Refresh channel list
@@ -619,6 +620,52 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 								err.message
 							);
 						});
+
+					// Enviar mensaxe a twitter cando comeza o directo, só se non se enviou xa.
+					if (!anySent) {
+						// Obter datos da excel desta canle con streamData.login ou streamData.user_name
+						var channelData = channels.find(
+							(channel) =>
+								channel &&
+								channel.name &&
+								channel.name.toLowerCase().replace('\r\n', '').replace('\r', '').replace('\n', '') ===
+									(streamData.login || streamData.user_name).toLowerCase()
+						);
+						console.log('[Twitter] channeldata: ', channelData);
+						// Comprobar se ten twitter asociado
+						if (channelData.twitter && channelData.twitter.startsWith('@')) {
+							// Comprobar se ten mensaxe personalizada ou coller unha por defecto
+							// Reemprazar as variables da mensaxe polos campos que correspondan.
+							const message = (channelData.message || config.twitter.defaultMessage)
+								.replace(/{{ChannelName}}/g, streamData.user_name)
+								.replace(/{{Twitter}}/g, channelData.twitter)
+								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : "?????")
+								.replace(
+									/{{ChannelUrl}}/g,
+									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
+								);
+							// Enviar tweet.
+							console.log('[Twitter] message:', message);
+							const client = new TwitterApi({
+								appKey: config.twitter.appKey,
+								appSecret: config.twitter.appSecret,
+								accessToken: config.twitter.accessToken,
+								accessSecret: config.twitter.accessSecret,
+							});
+							client.v2
+								.tweet(message)
+								.then(() =>
+									console.log('[Twitter]', `Enviouse tweet. Canle en directo: ${streamData.user_name}`)
+								)
+								.catch((error) =>
+									console.error(
+										'[Twitter]',
+										`Non se puido enviar o tweet da canle ${streamData.user_name}`,
+										error
+									)
+								);
+						}
+					}
 				}
 
 				anySent = true;
