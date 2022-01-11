@@ -17,7 +17,7 @@ const MiniDb = require('./minidb');
 const { TwitterApi } = require('twitter-api-v2');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
-console.log('Timbot is starting.');
+console.log(new Date(), 'Timbot is starting.');
 
 // --- Cleverbot init --------------------------------------------------------------------------------------------------
 let cleverbot = null;
@@ -35,7 +35,7 @@ if (config.cleverbot_token) {
 }
 
 // --- Discord ---------------------------------------------------------------------------------------------------------
-console.log('Connecting to Discord...');
+console.log(new Date(), 'Connecting to Discord...');
 
 let targetChannels = [];
 let emojiCache = {};
@@ -70,7 +70,7 @@ let syncServerList = (logMembership) => {
 };
 
 client.on('ready', () => {
-	console.log('[Discord]', `Bot is ready; logged in as ${client.user.tag}.`);
+	console.log(new Date(), '[Discord]', `Bot is ready; logged in as ${client.user.tag}.`);
 
 	// Init list of connected servers, and determine which channels we are announcing to
 	syncServerList(true);
@@ -86,13 +86,13 @@ client.on('ready', () => {
 });
 
 client.on('guildCreate', (guild) => {
-	console.log(`[Discord]`, `Joined new server: ${guild.name}`);
+	console.log(new Date(), `[Discord]`, `Joined new server: ${guild.name}`);
 
 	syncServerList(false);
 });
 
 client.on('guildDelete', (guild) => {
-	console.log(`[Discord]`, `Removed from a server: ${guild.name}`);
+	console.log(new Date(), `[Discord]`, `Removed from a server: ${guild.name}`);
 
 	syncServerList(false);
 });
@@ -108,7 +108,7 @@ axios.get('https://twitch.center/customapi/quote/list?token=a912f99b').then((res
 		selloutList.push(line);
 	}
 
-	console.log('[Sellout]', `Sellout list initialized from remote, ${selloutList.length} items`);
+	console.log(new Date(), '[Sellout]', `Sellout list initialized from remote, ${selloutList.length} items`);
 });
 
 let selloutCheckTs = 0;
@@ -133,7 +133,7 @@ let doSelloutMessage = (channel) => {
 		channel.send(messageText);
 		channel.stopTyping(true);
 	} catch (e) {
-		console.error('[Sellout] ERR:', e.toString());
+		console.error(new Date(), '[Sellout] ERR:', e.toString());
 	}
 };
 
@@ -219,7 +219,7 @@ client.on('message', (message) => {
 
 					lastTextReplyAt = now;
 				} catch (e) {
-					console.error('[Chat]', 'Reply error:', e);
+					console.error(new Date(), '[Chat]', 'Reply error:', e);
 				}
 			}
 
@@ -420,7 +420,7 @@ client.on('message', (message) => {
 	}
 });
 
-console.log('[Discord]', 'Logging in...');
+console.log(new Date(), '[Discord]', 'Logging in...');
 client.login(config.discord_bot_token);
 
 // Activity updater
@@ -469,9 +469,9 @@ class StreamActivity {
 				type: 'STREAMING',
 			});
 
-			console.log('[StreamActivity]', `Update current activity: watching ${streamInfo.user_name}.`);
+			console.log(new Date(), '[StreamActivity]', `Update current activity: watching ${streamInfo.user_name}.`);
 		} else {
-			console.log('[StreamActivity]', 'Cleared current activity.');
+			console.log(new Date(), '[StreamActivity]', 'Cleared current activity.');
 
 			this.discordClient.user.setActivity(null);
 		}
@@ -541,6 +541,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								})
 								.catch((err) => {
 									console.log(
+										new Date(),
 										'[Discord]',
 										`Could not edit msg to #${discordChannel.name} on ${discordChannel.guild.name}:`,
 										err.message
@@ -583,6 +584,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								mentionMode = `<@&${roleData.id}>`;
 							} else {
 								console.log(
+									new Date(),
 									'[Discord]',
 									`Cannot mention role: ${mentionMode}`,
 									`(does not exist on server ${discordChannel.guild.name})`
@@ -606,6 +608,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 						.send(msgToSend, msgOptions)
 						.then((message) => {
 							console.log(
+								new Date(),
 								'[Discord]',
 								`Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`
 							);
@@ -615,6 +618,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 						})
 						.catch((err) => {
 							console.log(
+								new Date(),
 								'[Discord]',
 								`Could not send announce msg to #${discordChannel.name} on ${discordChannel.guild.name}:`,
 								err.message
@@ -631,7 +635,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								channel.name.toLowerCase().replace('\r\n', '').replace('\r', '').replace('\n', '') ===
 									(streamData.login || streamData.user_name).toLowerCase()
 						);
-						console.log('[Twitter] channeldata: ', channelData);
+						console.log(new Date(), '[Twitter] channeldata: ', channelData);
 						// Comprobar se ten twitter asociado
 						if (channelData.twitter && channelData.twitter.startsWith('@')) {
 							// Comprobar se ten mensaxe personalizada ou coller unha por defecto
@@ -639,13 +643,13 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 							const message = (channelData.message || config.twitter.defaultMessage)
 								.replace(/{{ChannelName}}/g, streamData.user_name)
 								.replace(/{{Twitter}}/g, channelData.twitter)
-								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : "?????")
+								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
 								.replace(
 									/{{ChannelUrl}}/g,
 									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
 								);
 							// Enviar tweet.
-							console.log('[Twitter] message:', message);
+							console.log(new Date(), '[Twitter] message:', message);
 							const client = new TwitterApi({
 								appKey: config.twitter.appKey,
 								appSecret: config.twitter.appSecret,
@@ -655,10 +659,15 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 							client.v2
 								.tweet(message)
 								.then(() =>
-									console.log('[Twitter]', `Enviouse tweet. Canle en directo: ${streamData.user_name}`)
+									console.log(
+										new Date(),
+										'[Twitter]',
+										`Enviouse tweet. Canle en directo: ${streamData.user_name}`
+									)
 								)
 								.catch((error) =>
 									console.error(
+										new Date(),
 										'[Twitter]',
 										`Non se puido enviar o tweet da canle ${streamData.user_name}`,
 										error
@@ -670,7 +679,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 
 				anySent = true;
 			} catch (e) {
-				console.warn('[Discord]', 'Message send problem:', e);
+				console.warn(new Date(), '[Discord]', 'Message send problem:', e);
 			}
 		}
 	}

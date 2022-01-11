@@ -40,6 +40,7 @@ class TwitchMonitor {
 
 			// Ready!
 			console.log(
+				new Date(),
 				'[TwitchMonitor]',
 				`Configured stream status polling for channels:`,
 				this.channelNames.join(', '),
@@ -68,7 +69,7 @@ class TwitchMonitor {
 					}
 				});
 				if (!this.channelNames.length) {
-					throw console.warn('[TwitchMonitor]', 'No channels configured');
+					throw console.warn(new Date(), '[TwitchMonitor]', 'No channels configured');
 				}
 				return this.channelNames;
 			})
@@ -77,7 +78,7 @@ class TwitchMonitor {
 
 	static refresh(reason) {
 		const now = moment();
-		console.log('[Twitch]', ' ▪ ▪ ▪ ▪ ▪ ', `Refreshing now (${reason ? reason : 'No reason'})`, ' ▪ ▪ ▪ ▪ ▪ ');
+		console.log(new Date(), '[Twitch]', ' ▪ ▪ ▪ ▪ ▪ ', `Refreshing now (${reason ? reason : 'No reason'})`, ' ▪ ▪ ▪ ▪ ▪ ');
 
 		// Refresh all users periodically
 		if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
@@ -90,7 +91,7 @@ class TwitchMonitor {
 						this.handleUserList(users);
 					})
 					.catch((err) => {
-						console.warn('[TwitchMonitor]', 'Error in users refresh:', err);
+						console.warn(new Date(), '[TwitchMonitor]', 'Error in users refresh:', err);
 					})
 					.then(() => {
 						if (this._pendingUserRefresh) {
@@ -108,7 +109,7 @@ class TwitchMonitor {
 					this.handleGameList(games);
 				})
 				.catch((err) => {
-					console.warn('[TwitchMonitor]', 'Error in games refresh:', err);
+					console.warn(new Date(), '[TwitchMonitor]', 'Error in games refresh:', err);
 				})
 				.then(() => {
 					if (this._pendingGameRefresh) {
@@ -124,7 +125,7 @@ class TwitchMonitor {
 					this.handleStreamList(channels);
 				})
 				.catch((err) => {
-					console.warn('[TwitchMonitor]', 'Error in streams refresh:', err);
+					console.warn(new Date(), '[TwitchMonitor]', 'Error in streams refresh:', err);
 				});
 		}
 	}
@@ -140,7 +141,7 @@ class TwitchMonitor {
 		});
 
 		if (namesSeen.length) {
-			console.debug('[TwitchMonitor]', 'Updated user info:', namesSeen.join(', '));
+			console.debug(new Date(), '[TwitchMonitor]', 'Updated user info:', namesSeen.join(', '));
 		}
 
 		this._lastUserRefresh = moment();
@@ -162,7 +163,7 @@ class TwitchMonitor {
 		});
 
 		if (gotGameNames.length) {
-			console.debug('[TwitchMonitor]', 'Updated game info:', gotGameNames.join(', '));
+			console.debug(new Date(), '[TwitchMonitor]', 'Updated game info:', gotGameNames.join(', '));
 		}
 
 		this._lastGameRefresh = moment();
@@ -204,7 +205,7 @@ class TwitchMonitor {
 
 			if (this.activeStreams.indexOf(_chanName) === -1) {
 				// Stream was not in the list before
-				console.log('[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
+				console.log(new Date(), '[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
 				anyChanges = true;
 			}
 
@@ -220,9 +221,15 @@ class TwitchMonitor {
 			if (nextOnlineList.indexOf(_chanName) === -1) {
 				// Stream was in the list before, but no longer
 				this.streamData[_chanName].timeout = this.streamData[_chanName].timeout ? this.streamData[_chanName].timeout + 1 : 1;
-				console.log('[TwitchMonitor]', 'Stream channel timeout, probabbly offline:', _chanName, this.streamData[_chanName].timeout);
+				console.log(
+					new Date(),
+					'[TwitchMonitor]',
+					'Stream channel timeout, probabbly offline:',
+					_chanName,
+					this.streamData[_chanName].timeout
+				);
 				if (this.streamData[_chanName].timeout >= 5) {
-					console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
+					console.log(new Date(), '[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
 					this.streamData[_chanName].type = 'detected_offline';
 					this.streamData[_chanName].timeout = 0;
 					this.handleChannelOffline(this.streamData[_chanName]);
@@ -239,7 +246,7 @@ class TwitchMonitor {
 			// Notify OK, update list
 			this.activeStreams = nextOnlineList;
 		} else {
-			console.log('[TwitchMonitor]', 'Could not notify channel, will try again next update.');
+			console.log(new Date(), '[TwitchMonitor]', 'Could not notify channel, will try again next update.');
 		}
 
 		if (!this._watchingGameIds.hasEqualValues(nextGameIdList)) {

@@ -17,9 +17,9 @@ class GoogleSheetsApi {
 	}
 	static handleApiError(error, message) {
 		if (message) {
-			console.error('[GoogleSheetsAPI]', 'API request failed with error:', error, message);
+			console.error(new Date(), '[GoogleSheetsAPI]', 'API request failed with error:', error, message);
 		} else {
-			console.error('[GoogleSheetsAPI]', 'API request failed with error:', error);
+			console.error(new Date(), '[GoogleSheetsAPI]', 'API request failed with error:', error);
 		}
 	}
 
@@ -81,32 +81,35 @@ class GoogleSheetsApi {
 	 * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
 	 */
 	static fetchData(spreadSheet) {
-		return this.authorize().then((auth) => new Promise((resolve, reject) => {
-			const sheets = google.sheets({ version: 'v4', auth });
-			sheets.spreadsheets.values.get({ spreadsheetId: spreadSheet.id, range: spreadSheet.range }, (err, res) => {
-				if (err) {
-					this.handleApiError(err, 'The Api returned an error');
-					return reject(err);
-				}
-				const rows = res.data.values;
-				if (rows.length) {
-					const headers = spreadSheet.headers.split(',');
-					// Map row columns to object propertiesPrint columns A and E, which correspond to indices 0 and 4.
-					const mappedRows = rows.map((row) => {
-						const newRow = {};
-						for (var i = 0; i < headers.length; i++) {
-							newRow[headers[i]] = row[i];
+		return this.authorize().then(
+			(auth) =>
+				new Promise((resolve, reject) => {
+					const sheets = google.sheets({ version: 'v4', auth });
+					sheets.spreadsheets.values.get({ spreadsheetId: spreadSheet.id, range: spreadSheet.range }, (err, res) => {
+						if (err) {
+							this.handleApiError(err, 'The Api returned an error');
+							return reject(err);
 						}
-						return newRow;
+						const rows = res.data.values;
+						if (rows.length) {
+							const headers = spreadSheet.headers.split(',');
+							// Map row columns to object propertiesPrint columns A and E, which correspond to indices 0 and 4.
+							const mappedRows = rows.map((row) => {
+								const newRow = {};
+								for (var i = 0; i < headers.length; i++) {
+									newRow[headers[i]] = row[i];
+								}
+								return newRow;
+							});
+							resolve(mappedRows);
+						} else {
+							console.log('No data found.');
+							this.handleApiError(err, 'No data found');
+							reject(err);
+						}
 					});
-					resolve(mappedRows);
-				} else {
-					console.log('No data found.');
-					this.handleApiError(err, 'No data found');
-					reject(err);
-				}
-			});
-		}));
+				})
+		);
 	}
 }
 
