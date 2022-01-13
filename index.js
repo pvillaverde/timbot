@@ -557,7 +557,8 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								// This will cause the message to be posted as new in the next update if needed.
 							}
 						});
-				} else {
+				// Only send message when we've already fetched game data.
+				} else if (streamData.game) {
 					// Sending a new message
 					if (!isLive) {
 						// We do not post "new" notifications for channels going/being offline
@@ -635,7 +636,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								channel.name.toLowerCase().replace('\r\n', '').replace('\r', '').replace('\n', '') ===
 									(streamData.login || streamData.user_name).toLowerCase()
 						);
-						console.log(new Date(), '[Twitter] channeldata: ', channelData);
 						// Comprobar se ten twitter asociado
 						if (channelData.twitter && channelData.twitter.startsWith('@')) {
 							// Comprobar se ten mensaxe personalizada ou coller unha por defecto
@@ -649,7 +649,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
 								);
 							// Enviar tweet.
-							console.log(new Date(), '[Twitter] message:', message);
 							const client = new TwitterApi({
 								appKey: config.twitter.appKey,
 								appSecret: config.twitter.appSecret,
