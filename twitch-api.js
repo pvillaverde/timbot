@@ -61,7 +61,7 @@ class TwitchApi {
 					resolve(res.data.data || []);
 				})
 				.catch((err) => {
-					if (err.response.status === 401) {
+					if (err.response && err.response.status === 401) {
 						return this.getAccessToken().then((token) => this.fetchStreams(channelNames));
 					} else {
 						this.handleApiError(err);
