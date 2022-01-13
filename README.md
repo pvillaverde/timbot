@@ -85,6 +85,12 @@ Unha vez feito, é preciso arrancar manualmente á aplicación como se indica ab
 
 No apartado `google_spreadsheet`, indicase o documento e o rango onde estan os datos.
 
+### Envío de Tweets
+
+Tamén se pode configurar o robot para que envíe tweets cos novos directos. Para iso é preciso dar de alta un proxecto no [Portal do Desenvolvedor de Twitter](https://developer.twitter.com/en/portal/projects/) e habilitar a autentificación e os permisos de escritura. Pódense seguir as documentacións da [librería twitter-api-v2](https://www.npmjs.com/package/twitter-api-v2).
+
+Unha vez feito, descomentar na configuración o apartado de twitter e indicar os datos (apiKey,apiSecret,accessToken,accessSecret) e a plantilla da mensaxe que queremos usar por defecto (tamén se pode poñer unha por cada canle de twitch). Ollo con respetar as variables entre chaves `{{}}`, xa que serán sustituídas pola información do directo ou da excel.
+
 ### Configuración
 
 Para configurar Timbot, copia o arquivo incluído `config-sample.json` a `config.json` e introduce ou personaliza os valores do arquivo.
@@ -115,7 +121,17 @@ Para configurar Timbot, copia o arquivo incluído `config-sample.json` a `config
 		"auth_provider_x509_cert_url": "<<XERADO POR GOOGLE: credentials.installed>>",
 		"client_secret": "<<XERADO POR GOOGLE: credentials.installed>>",
 		"redirect_uris": "<<XERADO POR GOOGLE: credentials.installed>>"
+	},
+	// Se queres mandar tamén notificacións en twitter, terás que crear unha app no Developer Center de twitter e poñer os datos precisos. Se non, déixao comentado
+	/*
+	"twitter": {
+		"appKey": "",
+		"appSecret":"",
+		"accessToken": "",
+		"accessSecret": "",
+		"defaultMessage":"{{ChannelName}} ({{Twitter}}) está agora en directo emitindo {{Game}}. Dálle unha ollada en {{ChannelUrl}}"
 	}
+	 */
 }
 ```
 
