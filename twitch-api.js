@@ -96,7 +96,9 @@ class TwitchApi {
 					if (err.response.status === 401) {
 						return this.getAccessToken().then((token) => this.fetchGames(gameIds));
 					} else {
+						console.log(gameIds);		
 						this.handleApiError(err);
+						return resolve([]);				
 					}
 				});
 		});
