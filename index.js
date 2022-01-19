@@ -643,6 +643,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 							const message = (channelData.message || config.twitter.defaultMessage)
 								.replace(/{{ChannelName}}/g, streamData.user_name)
 								.replace(/{{Twitter}}/g, channelData.twitter)
+								.replace(/{{Title}}/g, streamData.title)
 								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
 								.replace(
 									/{{ChannelUrl}}/g,
