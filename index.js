@@ -557,7 +557,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 								// This will cause the message to be posted as new in the next update if needed.
 							}
 						});
-				// Only send message when we've already fetched game data.
+					// Only send message when we've already fetched game data.
 				} else if (streamData.game) {
 					// Sending a new message
 					if (!isLive) {
@@ -637,43 +637,41 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 									(streamData.login || streamData.user_name).toLowerCase()
 						);
 						// Comprobar se ten twitter asociado
-						if (channelData.twitter && channelData.twitter.startsWith('@')) {
-							// Comprobar se ten mensaxe personalizada ou coller unha por defecto
-							// Reemprazar as variables da mensaxe polos campos que correspondan.
-							const message = (channelData.message || config.twitter.defaultMessage)
-								.replace(/{{ChannelName}}/g, streamData.user_name)
-								.replace(/{{Twitter}}/g, channelData.twitter)
-								.replace(/{{Title}}/g, streamData.title)
-								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
-								.replace(
-									/{{ChannelUrl}}/g,
-									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
-								);
-							// Enviar tweet.
-							const client = new TwitterApi({
-								appKey: config.twitter.appKey,
-								appSecret: config.twitter.appSecret,
-								accessToken: config.twitter.accessToken,
-								accessSecret: config.twitter.accessSecret,
-							});
-							client.v2
-								.tweet(message)
-								.then(() =>
-									console.log(
-										new Date(),
-										'[Twitter]',
-										`Enviouse tweet. Canle en directo: ${streamData.user_name}`
-									)
+						// Comprobar se ten mensaxe personalizada ou coller unha por defecto
+						// Reemprazar as variables da mensaxe polos campos que correspondan.
+						const message = (channelData.message || config.twitter.defaultMessage)
+							.replace(/{{ChannelName}}/g, streamData.user_name)
+							.replace(/{{Twitter}}/g, channelData.twitter)
+							.replace(/{{Title}}/g, streamData.title)
+							.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
+							.replace(
+								/{{ChannelUrl}}/g,
+								`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
+							);
+						// Enviar tweet.
+						const client = new TwitterApi({
+							appKey: config.twitter.appKey,
+							appSecret: config.twitter.appSecret,
+							accessToken: config.twitter.accessToken,
+							accessSecret: config.twitter.accessSecret,
+						});
+						client.v2
+							.tweet(message)
+							.then(() =>
+								console.log(
+									new Date(),
+									'[Twitter]',
+									`Enviouse tweet. Canle en directo: ${streamData.user_name}`
 								)
-								.catch((error) =>
-									console.error(
-										new Date(),
-										'[Twitter]',
-										`Non se puido enviar o tweet da canle ${streamData.user_name}`,
-										error
-									)
-								);
-						}
+							)
+							.catch((error) =>
+								console.error(
+									new Date(),
+									'[Twitter]',
+									`Non se puido enviar o tweet da canle ${streamData.user_name}`,
+									error
+								)
+							);
 					}
 				}
 
