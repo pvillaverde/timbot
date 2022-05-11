@@ -42,7 +42,7 @@ class TwitchMonitor {
 			console.log(
 				new Date(),
 				'[TwitchMonitor]',
-				`Configured stream status polling for channels:`,
+				`Configured stream status polling for ${this.channelNames.length} channels:`,
 				this.channelNames.join(', '),
 				`(${checkIntervalMs}ms interval)`
 			);

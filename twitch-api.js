@@ -56,12 +56,26 @@ class TwitchApi {
 
 	static fetchStreams(channelNames) {
 		return new Promise((resolve, reject) => {
-			axios.get(`/streams?user_login=${channelNames.join('&user_login=')}`, this.requestOptions)
-				.then((res) => {
-					resolve(res.data.data || []);
-				})
-				.catch((err) => {
-					if (err.response && err.response.status === 401) {
+			const maxPerRequest = 100;
+			const requestsChannels = channelNames.reduce((resultArray, item, index) => {
+				const chunkIndex = Math.floor(index / maxPerRequest);
+				if (!resultArray[chunkIndex]) {
+					resultArray[chunkIndex] = []; // start a new chunk
+				}
+				resultArray[chunkIndex].push(item);
+				return resultArray;
+			}, []);
+			const requests = requestsChannels.map((cNames) => axios.get(`/streams?user_login=${cNames.join('&user_login=')}`, this.requestOptions));
+			axios.all(requests)
+				.then(
+					axios.spread((...responses) => {
+						const streams = responses.reduce((array, item, index) => array.concat(item.data.data || []), []);
+						resolve(streams);
+					})
+				)
+				.catch((errors) => {
+					const err = errors[0] ? errors[0] : errors;
+					if (err.response.status === 401) {
 						return this.getAccessToken().then((token) => this.fetchStreams(channelNames));
 					} else {
 						this.handleApiError(err);
@@ -72,11 +86,25 @@ class TwitchApi {
 
 	static fetchUsers(channelNames) {
 		return new Promise((resolve, reject) => {
-			axios.get(`/users?login=${channelNames.join('&login=')}`, this.requestOptions)
-				.then((res) => {
-					resolve(res.data.data || []);
-				})
-				.catch((err) => {
+			const maxPerRequest = 100;
+			const requestsChannels = channelNames.reduce((resultArray, item, index) => {
+				const chunkIndex = Math.floor(index / maxPerRequest);
+				if (!resultArray[chunkIndex]) {
+					resultArray[chunkIndex] = []; // start a new chunk
+				}
+				resultArray[chunkIndex].push(item);
+				return resultArray;
+			}, []);
+			const requests = requestsChannels.map((cNames) => axios.get(`/users?login=${cNames.join('&login=')}`, this.requestOptions));
+			axios.all(requests)
+				.then(
+					axios.spread((...responses) => {
+						const channels = responses.reduce((array, item, index) => array.concat(item.data.data || []), []);
+						resolve(channels);
+					})
+				)
+				.catch((errors) => {
+					const err = errors[0] ? errors[0] : errors;
 					if (err.response.status === 401) {
 						return this.getAccessToken().then((token) => this.fetchUsers(channelNames));
 					} else {
@@ -96,9 +124,9 @@ class TwitchApi {
 					if (err.response.status === 401) {
 						return this.getAccessToken().then((token) => this.fetchGames(gameIds));
 					} else {
-						console.log(gameIds);		
+						console.log(gameIds);
 						this.handleApiError(err);
-						return resolve([]);				
+						return resolve([]);
 					}
 				});
 		});
