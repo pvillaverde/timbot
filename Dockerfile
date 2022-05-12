@@ -10,4 +10,7 @@ RUN mkdir -p /opt/timbot && cp -a /tmp/node_modules /opt/timbot
 WORKDIR /opt/timbot
 ADD . /opt/timbot
 
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s \
+      CMD node healthcheck.js
+
 CMD [ "node", "index.js" ]
