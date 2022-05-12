@@ -4,6 +4,7 @@ const config = require('./config.json');
 const MiniDb = require('./minidb');
 const liveMessageDb = new MiniDb('live-messages');
 let lastError = liveMessageDb.get('last-error') || null;
+const moment = require('moment');
 /**
  * Twitch Helix API helper ("New Twitch API").
  */
