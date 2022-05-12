@@ -3,6 +3,9 @@ const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
 const config = require('./config.json');
+const MiniDb = require('./minidb');
+const liveMessageDb = new MiniDb('live-messages');
+let lastError = liveMessageDb.get('last-error') || null;
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 /**
@@ -21,6 +24,9 @@ class GoogleSheetsApi {
 		} else {
 			console.error(new Date(), '[GoogleSheetsAPI]', 'API request failed with error:', error);
 		}
+
+		lastError = moment();
+		liveMessageDb.put('last-error', lastError);
 	}
 
 	/**

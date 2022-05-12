@@ -1,7 +1,9 @@
 const axios = require('axios');
 const fs = require('fs');
 const config = require('./config.json');
-
+const MiniDb = require('./minidb');
+const liveMessageDb = new MiniDb('live-messages');
+let lastError = liveMessageDb.get('last-error') || null;
 /**
  * Twitch Helix API helper ("New Twitch API").
  */
@@ -39,6 +41,9 @@ class TwitchApi {
 		} else {
 			console.error('[TwitchApi]', 'API request failed with error:', err.message || err);
 		}
+
+		lastError = moment();
+		liveMessageDb.put('last-error', lastError);
 	}
 
 	static getAccessToken() {
