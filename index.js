@@ -15,6 +15,7 @@ const ElizaHelper = require('./eliza');
 const LiveEmbed = require('./live-embed');
 const MiniDb = require('./minidb');
 const { TwitterApi } = require('twitter-api-v2');
+const Mastodon = require('mastodon-api');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
 console.log(new Date(), 'Timbot is starting.');
@@ -639,39 +640,73 @@ TwitchMonitor.onChannelLiveUpdate((streamData, isOnline, channels) => {
 						// Comprobar se ten twitter asociado
 						// Comprobar se ten mensaxe personalizada ou coller unha por defecto
 						// Reemprazar as variables da mensaxe polos campos que correspondan.
-						const message = (channelData.message || config.twitter.defaultMessage)
-							.replace(/{{ChannelName}}/g, streamData.user_name)
-							.replace(/{{Twitter}}/g, channelData.twitter)
-							.replace(/{{Title}}/g, streamData.title)
-							.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
-							.replace(
-								/{{ChannelUrl}}/g,
-								`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
-							);
-						// Enviar tweet.
-						const client = new TwitterApi({
-							appKey: config.twitter.appKey,
-							appSecret: config.twitter.appSecret,
-							accessToken: config.twitter.accessToken,
-							accessSecret: config.twitter.accessSecret,
-						});
-						client.v2
-							.tweet(message)
-							.then(() =>
-								console.log(
-									new Date(),
-									'[Twitter]',
-									`Enviouse tweet. Canle en directo: ${streamData.user_name}`
+						if (config.twitter) {
+							const twitterMessage = (channelData.message || config.twitter.defaultMessage)
+								.replace(/{{ChannelName}}/g, streamData.user_name)
+								.replace(/{{Twitter}}/g, channelData.twitter)
+								.replace(/{{Title}}/g, streamData.title)
+								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
+								.replace(
+									/{{ChannelUrl}}/g,
+									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
+								);
+							// Enviar tweet.
+							const client = new TwitterApi({
+								appKey: config.twitter.appKey,
+								appSecret: config.twitter.appSecret,
+								accessToken: config.twitter.accessToken,
+								accessSecret: config.twitter.accessSecret,
+							});
+							client.v2
+								.tweet(twitterMessage)
+								.then(() =>
+									console.log(
+										new Date(),
+										'[Twitter]',
+										`Enviouse tweet. Canle en directo: ${streamData.user_name}`
+									)
 								)
-							)
-							.catch((error) =>
-								console.error(
-									new Date(),
-									'[Twitter]',
-									`Non se puido enviar o tweet da canle ${streamData.user_name}`,
-									error
+								.catch((error) =>
+									console.error(
+										new Date(),
+										'[Twitter]',
+										`Non se puido enviar o tweet da canle ${streamData.user_name}`,
+										error
+									)
+								);
+						}
+						if (config.mastodon) {
+							const mastodonMessage = config.mastodon.defaultMessage
+								.replace(/{{ChannelName}}/g, streamData.user_name)
+								.replace(/{{Title}}/g, streamData.title)
+								.replace(/{{Game}}/g, streamData.game ? streamData.game.name : '?????')
+								.replace(
+									/{{ChannelUrl}}/g,
+									`https://twitch.tv/${(streamData.login || streamData.user_name).toLowerCase()}`
+								);
+							// Enviar tweet.
+							const client = new Mastodon({
+								access_token: config.mastodon.access_token,
+								timeout_ms: config.mastodon.timeout_ms,
+								api_url: config.mastodon.api_url,
+							});
+							client.post('statuses', { status: mastodonMessage })
+								.then(() =>
+									console.log(
+										new Date(),
+										'[Mastodon]',
+										`Enviouse toot. Canle en directo: ${streamData.user_name}`
+									)
 								)
-							);
+								.catch((error) =>
+									console.error(
+										new Date(),
+										'[Mastodon]',
+										`Non se puido enviar o toot da canle ${streamData.user_name}`,
+										error
+									)
+								);
+						}
 					}
 				}
 

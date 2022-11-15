@@ -132,6 +132,15 @@ Para configurar Timbot, copia o arquivo incluído `config-sample.json` a `config
 		"defaultMessage":"{{ChannelName}} ({{Twitter}}) está agora en directo emitindo {{Game}}. Dálle unha ollada en {{ChannelUrl}}"
 	}
 	 */
+	// Se queres mandar tamén notificacións en mastodon, terás que crear unha conta bot cunha app de desenvolvemento. Se non, déixao comentado
+	/*
+	"mastodon": {
+		"access_token": "",
+		"timeout_ms": 6000,
+		"api_url": "https://botsin.space/api/v1/",
+		"defaultMessage": "{{ChannelName}} está agora en directo emitindo {{Game}} en #GalegoTwitch #TwitchEnGalego. Dálle unha ollada en {{ChannelUrl}}"
+	}
+	 */
 }
 ```
 
